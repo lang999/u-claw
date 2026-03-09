@@ -201,13 +201,17 @@ do_run() {
             echo "  接下来可以选 [17] 打开网页控制台。"
         fi
     else
-        "$NODE_BIN" openclaw.mjs dashboard
+        echo -e "  ${GREEN}正在启动网关服务...${NC}"
+        echo "  启动后会自动打开浏览器控制台。"
+        echo "  此窗口不要关闭，关闭后服务会停止。"
+        echo ""
+        "$NODE_BIN" openclaw.mjs gateway run
     fi
 }
 
 do_dashboard() {
     echo ""
-    echo -e "  ${CYAN}${BOLD}━━━ 打开本地网页控制台 ━━━${NC}"
+    echo -e "  ${CYAN}${BOLD}━━━ 启动网关 + 打开网页控制台 ━━━${NC}"
     echo ""
     ensure_deps
     cd "$OPENCLAW_DIR"
@@ -215,7 +219,9 @@ do_dashboard() {
         echo -e "  ${YELLOW}你还没有完成 U 盘便携配置。请先选 [4] 从 U 盘运行。${NC}"
         return
     fi
-    "$NODE_BIN" openclaw.mjs dashboard
+    echo "  此窗口不要关闭，关闭后服务会停止。"
+    echo ""
+    "$NODE_BIN" openclaw.mjs gateway run
 }
 
 # [5] 配置国产模型
