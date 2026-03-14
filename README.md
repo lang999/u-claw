@@ -144,6 +144,20 @@ bash Mac-Start.command   # Mac 测试
 
 欢迎 PR！特别需要：Windows 脚本完善、教程翻译。
 
+### 🦞 寻找技术伙伴
+
+U-Claw 是一个快速成长的开源项目，目前已有不少商业合作机会。
+
+我们正在寻找：
+- **技术伙伴** — 全栈 / Node.js / Electron / 脚本自动化
+- **资源合作** — 渠道、内容、社区运营
+
+如果你对 AI 工具的落地和商业化感兴趣，欢迎联系：
+
+- 微信: hecare888
+- GitHub: [@dongsheng123132](https://github.com/dongsheng123132)
+- 官网: [u-claw.org](https://u-claw.org)
+
 ### FAQ
 
 **Q: 需要翻墙吗？**
@@ -298,6 +312,20 @@ bash Mac-Start.command   # Test on Mac
 | Linux x64 (Bootable USB) | ✅ | [`bootable/`](bootable/) directory |
 
 PRs welcome! Especially: Windows scripts, documentation.
+
+### 🦞 Looking for Partners
+
+U-Claw is a fast-growing open-source project with real commercial opportunities.
+
+We're looking for:
+- **Technical partners** — Full-stack / Node.js / Electron / scripting
+- **Resource partners** — Distribution, content, community
+
+If you're interested in AI tooling and commercialization, let's talk:
+
+- WeChat: hecare888
+- GitHub: [@dongsheng123132](https://github.com/dongsheng123132)
+- Website: [u-claw.org](https://u-claw.org)
 
 ### FAQ
 
