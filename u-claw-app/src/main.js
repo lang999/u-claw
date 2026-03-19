@@ -44,8 +44,22 @@ function getNodeBin() {
   return 'node';
 }
 
-// User data
-const userDataPath = app.getPath('userData');
+// Portable mode: if a `portable/` directory exists next to the .app bundle, use it for data
+function getPortableDataPath() {
+  const appPath = app.getAppPath(); // inside .app/Contents/Resources/app
+  // Walk up to the .app's parent directory
+  const appBundleDir = path.resolve(appPath, '..', '..', '..', '..');
+  const portableDir = path.join(appBundleDir, 'portable');
+  if (fs.existsSync(portableDir)) {
+    console.log(`[${APP_NAME}] Portable mode: data in ${portableDir}`);
+    return portableDir;
+  }
+  return null;
+}
+
+// User data — portable or default
+const portablePath = app.isPackaged ? getPortableDataPath() : null;
+const userDataPath = portablePath || app.getPath('userData');
 const configDir = path.join(userDataPath, '.openclaw');
 const configPath = path.join(configDir, 'openclaw.json');
 
@@ -85,7 +99,13 @@ function getConfig() {
 
 function hasModelConfigured() {
   const config = getConfig();
-  return !!(config.agent && config.agent.model);
+  // Check new format: agents.defaults.model.primary or env with API key or models.providers
+  if (config.agents?.defaults?.model?.primary) return true;
+  if (config.env && Object.keys(config.env).some(k => k.includes('API_KEY'))) return true;
+  if (config.models?.providers && Object.keys(config.models.providers).length > 0) return true;
+  // Legacy format
+  if (config.agent?.model) return true;
+  return false;
 }
 
 function getToken() {

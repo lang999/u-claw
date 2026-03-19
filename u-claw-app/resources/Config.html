@@ -3,1181 +3,619 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>U-Claw 配置助手</title>
+<title>U-Claw Pro — 模型配置</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, "Microsoft YaHei", "PingFang SC", sans-serif; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; }
-.container { max-width: 720px; margin: 0 auto; padding: 24px 20px 60px; }
+body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; }
+.container { max-width: 680px; margin: 0 auto; padding: 30px 20px 60px; }
 h1 { text-align: center; font-size: 1.8em; margin-bottom: 4px; }
-h1 span { color: #ff6b35; }
-.subtitle { text-align: center; color: #888; margin-bottom: 20px; font-size: 0.95em; }
+h1 .lobster { color: #ff6b35; }
+.subtitle { text-align: center; color: #888; margin-bottom: 24px; font-size: 0.92em; }
 
-/* Status bar */
-.status-bar { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 10px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
-.dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-.dot.off { background: #666; }
-.dot.on { background: #4caf50; animation: pulse 2s infinite; }
-.dot.connecting { background: #ff9800; animation: pulse 1s infinite; }
-@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
-.status-text { flex: 1; font-size: 0.9em; }
-.status-text a { color: #ff6b35; text-decoration: none; }
-
-/* Progress steps */
-.steps { display: flex; gap: 0; margin-bottom: 20px; background: #1a1a1a; border-radius: 8px; overflow: hidden; border: 1px solid #333; }
-.step { flex: 1; text-align: center; padding: 10px 8px; font-size: 0.85em; color: #666; position: relative; cursor: pointer; transition: all 0.2s; }
-.step.active { color: #ff6b35; background: rgba(255,107,53,0.08); }
+/* Steps */
+.steps { display: flex; gap: 0; margin-bottom: 24px; background: #1a1a1a; border-radius: 10px; overflow: hidden; border: 1px solid #333; }
+.step { flex: 1; text-align: center; padding: 12px 8px; font-size: 0.85em; color: #666; cursor: pointer; transition: all 0.2s; }
+.step.active { color: #ff6b35; background: rgba(255,107,53,0.08); font-weight: 600; }
 .step.done { color: #4caf50; }
-.step .num { display: inline-block; width: 20px; height: 20px; line-height: 20px; border-radius: 50%; background: #333; color: #888; font-size: 0.8em; margin-right: 4px; }
+.step .num { display: inline-block; width: 22px; height: 22px; line-height: 22px; border-radius: 50%; background: #333; color: #888; font-size: 0.8em; margin-right: 4px; }
 .step.active .num { background: #ff6b35; color: #fff; }
 .step.done .num { background: #4caf50; color: #fff; }
 
-/* Sections */
-.section { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
-.section h2 { color: #ff6b35; font-size: 1.1em; margin-bottom: 4px; }
-.section .desc { color: #888; font-size: 0.88em; margin-bottom: 14px; }
+/* Section */
+.section { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 24px; margin-bottom: 16px; display: none; }
+.section.active { display: block; }
+.section h2 { color: #ff6b35; font-size: 1.15em; margin-bottom: 6px; }
+.section .desc { color: #888; font-size: 0.88em; margin-bottom: 16px; }
+
+/* Model cards */
+.model-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.model-card { background: #222; border: 2px solid #333; border-radius: 10px; padding: 14px; cursor: pointer; transition: all 0.15s; position: relative; }
+.model-card:hover { border-color: #555; transform: translateY(-1px); }
+.model-card.selected { border-color: #ff6b35; background: rgba(255,107,53,0.06); }
+.model-card h4 { color: #fff; font-size: 0.95em; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.model-card p { color: #888; font-size: 0.78em; line-height: 1.4; }
+.tag { font-size: 0.68em; padding: 2px 7px; border-radius: 10px; font-weight: 500; }
+.tag.hot { background: rgba(255,107,53,0.2); color: #ff6b35; }
+.tag.free { background: rgba(76,175,80,0.2); color: #4caf50; }
+.tag.cn { background: rgba(33,150,243,0.2); color: #2196f3; }
+.tag.fast { background: rgba(156,39,176,0.2); color: #ce93d8; }
+.tag.cheap { background: rgba(255,193,7,0.2); color: #ffd54f; }
+.check { position: absolute; top: 8px; right: 10px; color: #ff6b35; font-size: 1.2em; display: none; }
+.model-card.selected .check { display: block; }
+
+/* Buy link */
+.buy-link { display: inline-flex; align-items: center; gap: 4px; color: #ff6b35; text-decoration: none; font-size: 0.82em; margin-top: 6px; }
+.buy-link:hover { text-decoration: underline; }
 
 /* Forms */
-.form-group { margin-bottom: 14px; }
-label { display: block; color: #ccc; margin-bottom: 4px; font-size: 0.9em; }
-select, input[type="text"], input[type="password"], input[type="number"], textarea {
-    width: 100%; padding: 10px 12px; background: #222; border: 1px solid #444; border-radius: 6px;
+.form-group { margin-bottom: 16px; }
+label { display: block; color: #ccc; margin-bottom: 6px; font-size: 0.9em; }
+input[type="text"], input[type="password"] {
+    width: 100%; padding: 11px 14px; background: #222; border: 1px solid #444; border-radius: 8px;
     color: #fff; font-size: 0.95em; outline: none; transition: border-color 0.2s;
 }
-select:focus, input:focus, textarea:focus { border-color: #ff6b35; }
-textarea { resize: vertical; min-height: 60px; font-family: inherit; }
-.hint { color: #888; font-size: 0.8em; margin-top: 4px; }
+input:focus { border-color: #ff6b35; }
+.input-wrap { position: relative; }
+.input-wrap input { padding-right: 44px; }
+.toggle-pw { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #888; cursor: pointer; font-size: 0.85em; }
+.toggle-pw:hover { color: #ccc; }
+.hint { color: #888; font-size: 0.8em; margin-top: 6px; line-height: 1.5; }
 .hint a { color: #ff6b35; text-decoration: none; }
 .hint a:hover { text-decoration: underline; }
 
-/* Password toggle */
-.input-wrap { position: relative; }
-.input-wrap input { padding-right: 40px; }
-.toggle-pw { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #888; cursor: pointer; font-size: 0.85em; }
-.toggle-pw:hover { color: #ccc; }
-
-/* Model cards */
-.model-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
-.model-card { background: #222; border: 2px solid #333; border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: all 0.15s; }
-.model-card:hover { border-color: #555; }
-.model-card.selected { border-color: #ff6b35; background: rgba(255,107,53,0.08); }
-.model-card h4 { color: #fff; font-size: 0.95em; display: flex; align-items: center; gap: 6px; }
-.model-card h4 .tag { font-size: 0.7em; padding: 1px 6px; border-radius: 8px; background: #333; color: #aaa; }
-.model-card h4 .tag.hot { background: rgba(255,107,53,0.2); color: #ff6b35; }
-.model-card h4 .tag.free { background: rgba(76,175,80,0.2); color: #4caf50; }
-.model-card h4 .tag.local { background: rgba(33,150,243,0.2); color: #2196f3; }
-.model-card p { color: #888; font-size: 0.8em; margin-top: 2px; }
+/* API Key info box */
+.api-info { background: #1e1e2e; border: 1px solid #333; border-radius: 8px; padding: 14px; margin-bottom: 16px; }
+.api-info h4 { color: #ff6b35; font-size: 0.9em; margin-bottom: 8px; }
+.api-info .provider-links { display: flex; flex-direction: column; gap: 6px; }
+.api-info a { color: #82aaff; text-decoration: none; font-size: 0.85em; display: flex; align-items: center; gap: 6px; }
+.api-info a:hover { color: #ff6b35; }
+.api-info a .price { color: #888; font-size: 0.85em; }
 
 /* Buttons */
-.btn { display: inline-block; padding: 10px 24px; border: none; border-radius: 8px; font-size: 0.95em; cursor: pointer; transition: all 0.15s; }
+.btn { display: inline-block; padding: 12px 28px; border: none; border-radius: 8px; font-size: 0.95em; cursor: pointer; transition: all 0.15s; font-weight: 500; }
 .btn-primary { background: #ff6b35; color: #fff; }
 .btn-primary:hover { background: #e55a25; }
 .btn-primary:disabled { background: #444; color: #888; cursor: not-allowed; }
 .btn-secondary { background: #333; color: #ccc; }
 .btn-secondary:hover { background: #444; }
-.btn-sm { padding: 6px 14px; font-size: 0.85em; }
-.btn-row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+.btn-row { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
 
-/* Messages */
-.msg { padding: 10px 14px; border-radius: 6px; margin-top: 10px; font-size: 0.9em; display: none; }
-.msg.ok { display: block; background: rgba(76,175,80,0.12); color: #4caf50; border: 1px solid rgba(76,175,80,0.3); }
-.msg.err { display: block; background: rgba(244,67,54,0.12); color: #f44336; border: 1px solid rgba(244,67,54,0.3); }
-.msg.warn { display: block; background: rgba(255,152,0,0.12); color: #ff9800; border: 1px solid rgba(255,152,0,0.3); }
-.msg.info { display: block; background: rgba(33,150,243,0.12); color: #2196f3; border: 1px solid rgba(33,150,243,0.3); }
+/* Result */
+.result { text-align: center; padding: 40px 20px; }
+.result .icon { font-size: 3em; margin-bottom: 12px; }
+.result h2 { color: #4caf50; margin-bottom: 8px; }
+.result p { color: #888; font-size: 0.92em; line-height: 1.6; }
+.result .url { color: #ff6b35; font-size: 1.1em; font-weight: 600; margin: 12px 0; }
 
-/* Panels */
-.panel { display: none; }
-.panel.active { display: block; }
+/* Toast */
+.toast { position: fixed; top: 20px; right: 20px; background: #4caf50; color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 0.9em; opacity: 0; transform: translateY(-10px); transition: all 0.3s; z-index: 999; }
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.error { background: #f44336; }
 
-/* IM items */
-.im-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: #222; border: 1px solid #333; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: all 0.15s; }
-.im-item:hover { border-color: #555; }
-.im-item.configured { border-color: rgba(76,175,80,0.5); background: rgba(76,175,80,0.05); }
-.im-icon { font-size: 1.3em; width: 32px; text-align: center; flex-shrink: 0; }
-.im-info { flex: 1; }
-.im-name { font-weight: 600; font-size: 0.95em; }
-.im-desc { color: #888; font-size: 0.82em; margin-top: 1px; }
-.im-badge { font-size: 0.75em; padding: 2px 8px; border-radius: 10px; margin-left: auto; flex-shrink: 0; }
-.im-badge.installed { background: rgba(76,175,80,0.2); color: #4caf50; }
-.im-badge.builtin { background: rgba(33,150,243,0.2); color: #2196f3; }
-.im-badge.config { color: #888; }
+/* Channel form */
+.channel-card { transition: all 0.2s; }
+.channel-card.selected { border-color: #ff6b35; background: rgba(255,107,53,0.06); }
+.channel-form { padding-top: 12px; margin-top: 10px; border-top: 1px solid #333; max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease; padding-top: 0; }
+.channel-form.open { max-height: 300px; padding-top: 12px; }
+.channel-form .form-group { margin-bottom: 10px; }
+.channel-form label { font-size: 0.82em; color: #aaa; margin-bottom: 4px; }
+.channel-form input { font-size: 0.88em; padding: 9px 12px; }
+.channel-form .hint { font-size: 0.75em; margin-top: 4px; }
 
-/* Expandable config */
-.expandable { display: none; background: #181818; border: 1px solid #333; border-top: none; border-radius: 0 0 8px 8px; padding: 16px; margin-top: -8px; margin-bottom: 8px; }
-.expandable.open { display: block; }
-.expandable .guide { background: rgba(255,152,0,0.08); border: 1px solid rgba(255,152,0,0.2); border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; font-size: 0.88em; color: #ccc; }
-.expandable .guide b { color: #ff9800; }
-.expandable .guide ol { padding-left: 18px; margin-top: 6px; }
-.expandable .guide li { margin-bottom: 4px; }
-
-/* Overview cards */
-.overview { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-.ov-card { background: #222; border: 1px solid #333; border-radius: 8px; padding: 12px; }
-.ov-card .ov-label { color: #888; font-size: 0.82em; margin-bottom: 4px; }
-.ov-card .ov-value { font-size: 1em; color: #fff; }
-.ov-card .ov-value.none { color: #666; }
-.ov-card .ov-value.ok { color: #4caf50; }
-.ov-card .ov-value.err { color: #f44336; }
-
-/* Config editor */
-pre.config-raw { background: #111; padding: 14px; border-radius: 6px; font-size: 0.82em; overflow-x: auto; max-height: 400px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; border: 1px solid #333; display: none; margin-top: 10px; }
-
-/* First-time banner */
-.welcome-banner { background: linear-gradient(135deg, rgba(255,107,53,0.1), rgba(255,107,53,0.02)); border: 1px solid rgba(255,107,53,0.3); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
-.welcome-banner h3 { color: #ff6b35; font-size: 1em; margin-bottom: 6px; }
-.welcome-banner p { color: #ccc; font-size: 0.88em; line-height: 1.5; }
-.welcome-banner .quick { margin-top: 8px; color: #888; font-size: 0.82em; }
+/* Skills section */
+.skills-section { margin-top: 20px; }
+.skill-list { display: flex; flex-direction: column; gap: 8px; }
+.skill-item { background: #222; border: 1px solid #333; border-radius: 8px; padding: 12px; display: flex; align-items: center; justify-content: space-between; }
+.skill-item .info h4 { color: #fff; font-size: 0.9em; }
+.skill-item .info p { color: #888; font-size: 0.78em; }
+.skill-item .status { font-size: 0.8em; color: #4caf50; }
 </style>
 </head>
 <body>
 <div class="container">
+    <h1><span class="lobster">🦞</span> U-Claw Pro</h1>
+    <p class="subtitle">便携版 — 选择模型，填入 API Key，一键启动</p>
 
-<h1>🦞 <span>U-Claw</span> 配置助手</h1>
-<p class="subtitle">简单几步，让你的 AI 助手跑起来</p>
-
-<!-- Connection status -->
-<div class="status-bar">
-    <div class="dot connecting" id="statusDot"></div>
-    <div class="status-text" id="statusText">正在连接 OpenClaw 网关...</div>
-</div>
-
-<!-- Welcome banner (first time only) -->
-<div class="welcome-banner" id="welcomeBanner" style="display:none">
-    <h3>欢迎使用 U-Claw！</h3>
-    <p>只需两步即可开始：<br>
-    <b>第 1 步</b>：选一个 AI 模型，填上 API Key<br>
-    <b>第 2 步</b>（可选）：接入聊天平台（QQ / 飞书 / Telegram）</p>
-    <p class="quick">国产模型无需翻墙，推荐 DeepSeek（编程）或 Kimi（长文档）</p>
-</div>
-
-<!-- Step indicators -->
-<div class="steps">
-    <div class="step active" onclick="goStep(1)" id="step1">
-        <span class="num">1</span>选模型
+    <!-- Steps -->
+    <div class="steps">
+        <div class="step active" data-step="1"><span class="num">1</span>选模型</div>
+        <div class="step" data-step="2"><span class="num">2</span>填 Key</div>
+        <div class="step" data-step="3"><span class="num">3</span>启动</div>
     </div>
-    <div class="step" onclick="goStep(2)" id="step2">
-        <span class="num">2</span>聊天平台
-    </div>
-    <div class="step" onclick="goStep(3)" id="step3">
-        <span class="num">3</span>系统设置
-    </div>
-</div>
 
-<!-- ============ Panel 1: Model Config ============ -->
-<div class="panel active" id="panel-1">
-    <div class="section">
+    <!-- Step 1: Select Model -->
+    <div class="section active" id="step1">
         <h2>选择 AI 模型</h2>
-        <p class="desc">选一个模型，填上 API Key，就能用了</p>
+        <p class="desc">选择你要使用的模型，推荐国内用户用 MiniMax / Kimi / DeepSeek</p>
 
-        <div class="model-cards" id="modelCards">
-            <div class="model-card" onclick="selectModel('deepseek')" data-model="deepseek">
-                <h4>DeepSeek <span class="tag hot">推荐</span></h4>
-                <p>编程首选，性价比最高</p>
+        <div class="model-grid">
+            <div class="model-card" data-provider="minimax" data-base="https://api.minimax.chat/v1" data-model="MiniMax-Text-01">
+                <span class="check">✓</span>
+                <h4>MiniMax <span class="tag hot">推荐</span><span class="tag cn">国内</span></h4>
+                <p>MiniMax-Text-01，速度快，性价比高</p>
+                <a class="buy-link" href="https://platform.minimaxi.com/" target="_blank">→ 获取 API Key</a>
             </div>
-            <div class="model-card" onclick="selectModel('kimi')" data-model="kimi">
-                <h4>Kimi K2.5 <span class="tag hot">推荐</span></h4>
-                <p>256K 上下文，长文档利器</p>
+            <div class="model-card" data-provider="kimi" data-base="https://api.moonshot.cn/v1" data-model="moonshot-v1-auto">
+                <span class="check">✓</span>
+                <h4>Kimi (月之暗面) <span class="tag cn">国内</span><span class="tag fast">快</span></h4>
+                <p>moonshot-v1-auto，智能选模型</p>
+                <a class="buy-link" href="https://platform.moonshot.cn/" target="_blank">→ 获取 API Key</a>
             </div>
-            <div class="model-card" onclick="selectModel('qwen')" data-model="qwen">
-                <h4>通义千问 <span class="tag free">免费</span></h4>
-                <p>阿里云，免费额度大</p>
+            <div class="model-card" data-provider="deepseek" data-base="https://api.deepseek.com/v1" data-model="deepseek-chat">
+                <span class="check">✓</span>
+                <h4>DeepSeek <span class="tag cn">国内</span><span class="tag cheap">便宜</span></h4>
+                <p>deepseek-chat，超低价格</p>
+                <a class="buy-link" href="https://platform.deepseek.com/" target="_blank">→ 获取 API Key</a>
             </div>
-            <div class="model-card" onclick="selectModel('glm')" data-model="glm">
-                <h4>智谱 GLM</h4>
-                <p>学术、中文 NLP</p>
+            <div class="model-card" data-provider="zai" data-base="" data-model="glm-5">
+                <span class="check">✓</span>
+                <h4>智谱 GLM <span class="tag cn">国内</span><span class="tag free">有免费</span></h4>
+                <p>glm-5（zai provider），免费额度可用</p>
+                <a class="buy-link" href="https://open.bigmodel.cn/" target="_blank">→ 获取 API Key</a>
             </div>
-            <div class="model-card" onclick="selectModel('minimax')" data-model="minimax">
-                <h4>MiniMax</h4>
-                <p>语音、多模态</p>
+            <div class="model-card" data-provider="qwen" data-base="https://dashscope.aliyuncs.com/compatible-mode/v1" data-model="qwen-turbo">
+                <span class="check">✓</span>
+                <h4>通义千问 <span class="tag cn">国内</span><span class="tag free">有免费</span></h4>
+                <p>qwen-turbo，阿里云出品</p>
+                <a class="buy-link" href="https://dashscope.console.aliyun.com/" target="_blank">→ 获取 API Key</a>
             </div>
-            <div class="model-card" onclick="selectModel('doubao')" data-model="doubao">
-                <h4>豆包 Doubao</h4>
-                <p>字节跳动·火山引擎</p>
+            <div class="model-card" data-provider="doubao" data-base="https://ark.cn-beijing.volces.com/api/v3" data-model="doubao-1.5-pro-32k">
+                <span class="check">✓</span>
+                <h4>豆包 (字节) <span class="tag cn">国内</span><span class="tag fast">快</span></h4>
+                <p>doubao-1.5-pro，字节跳动</p>
+                <a class="buy-link" href="https://console.volcengine.com/ark" target="_blank">→ 获取 API Key</a>
             </div>
-            <div class="model-card" onclick="selectModel('siliconflow')" data-model="siliconflow">
-                <h4>硅基流动</h4>
-                <p>模型聚合，一个 Key 多模型</p>
+            <div class="model-card" data-provider="openai" data-base="https://api.openai.com/v1" data-model="gpt-4o">
+                <span class="check">✓</span>
+                <h4>OpenAI <span class="tag hot">强</span></h4>
+                <p>GPT-4o，需翻墙或中转</p>
+                <a class="buy-link" href="https://platform.openai.com/" target="_blank">→ 获取 API Key</a>
             </div>
-            <div class="model-card" onclick="selectModel('claude')" data-model="claude">
-                <h4>Claude</h4>
-                <p>Anthropic，综合最强</p>
+            <div class="model-card" data-provider="anthropic" data-base="https://api.anthropic.com/v1" data-model="claude-sonnet-4-20250514">
+                <span class="check">✓</span>
+                <h4>Claude <span class="tag hot">强</span></h4>
+                <p>Claude Sonnet 4，需翻墙或中转</p>
+                <a class="buy-link" href="https://console.anthropic.com/" target="_blank">→ 获取 API Key</a>
             </div>
-            <div class="model-card" onclick="selectModel('gpt')" data-model="gpt">
-                <h4>GPT</h4>
-                <p>OpenAI，兼容性好</p>
+            <div class="model-card" data-provider="groq" data-base="https://api.groq.com/openai/v1" data-model="llama-3.3-70b-versatile">
+                <span class="check">✓</span>
+                <h4>Groq <span class="tag fast">极快</span><span class="tag free">有免费</span></h4>
+                <p>Llama 3.3 70B，超高速推理</p>
+                <a class="buy-link" href="https://console.groq.com/" target="_blank">→ 获取 API Key</a>
             </div>
-            <div class="model-card" onclick="selectModel('ollama')" data-model="ollama">
-                <h4>Ollama <span class="tag local">本地</span></h4>
-                <p>本地运行，完全免费</p>
+            <div class="model-card" data-provider="siliconflow" data-base="https://api.siliconflow.cn/v1" data-model="Qwen/Qwen2.5-72B-Instruct">
+                <span class="check">✓</span>
+                <h4>硅基流动 <span class="tag cn">国内</span><span class="tag cheap">便宜</span></h4>
+                <p>多模型聚合，价格低</p>
+                <a class="buy-link" href="https://cloud.siliconflow.cn/" target="_blank">→ 获取 API Key</a>
             </div>
-            <div class="model-card" onclick="selectModel('custom')" data-model="custom" style="grid-column: 1 / -1; border-style: dashed;">
-                <h4>🔧 自定义 / API 中转 <span class="tag">通用</span></h4>
-                <p>兼容 OpenAI 格式的任意平台（OpenRouter、API2D、New API、One API 等中转站）</p>
+            <div class="model-card" data-provider="custom" data-base="" data-model="">
+                <span class="check">✓</span>
+                <h4>自定义 <span class="tag">OpenAI 兼容</span></h4>
+                <p>填写任意 OpenAI 兼容 API 地址</p>
             </div>
         </div>
 
-        <!-- Model config form (hidden until selection) -->
-        <div id="modelConfigForm" style="display:none">
-            <div class="form-group" id="apiKeyGroup">
-                <label id="apiKeyLabel">API Key</label>
-                <div class="input-wrap">
-                    <input type="password" id="apiKey" placeholder="sk-...">
-                    <button class="toggle-pw" onclick="togglePassword('apiKey')">显示</button>
-                </div>
-                <p class="hint" id="apiKeyHint"></p>
-            </div>
-            <div class="form-group" id="baseUrlGroup" style="display:none">
+        <div class="btn-row">
+            <button class="btn btn-primary" id="nextStep1" disabled>下一步 →</button>
+        </div>
+    </div>
+
+    <!-- Step 2: API Key -->
+    <div class="section" id="step2">
+        <h2>填写 API Key</h2>
+        <p class="desc" id="step2desc">请填写对应模型的 API Key</p>
+
+        <div class="api-info" id="buyInfo">
+            <h4>📌 如何获取 API Key？</h4>
+            <div class="provider-links" id="providerLinks"></div>
+        </div>
+
+        <!-- Custom fields (hidden by default) -->
+        <div id="customFields" style="display:none;">
+            <div class="form-group">
                 <label>API 地址 (Base URL)</label>
-                <input type="text" id="baseUrl" placeholder="https://api.deepseek.com/v1">
-                <p class="hint">一般不需要修改，除非你使用代理或自建服务</p>
+                <input type="text" id="customBase" placeholder="https://api.example.com/v1">
             </div>
-            <div class="form-group" id="modelNameGroup" style="display:none">
+            <div class="form-group">
                 <label>模型名称</label>
-                <input type="text" id="modelName" placeholder="deepseek-chat">
-                <p class="hint" id="modelNameHint">默认已填好，高级用户可修改</p>
+                <input type="text" id="customModel" placeholder="gpt-4o">
             </div>
-
-            <div class="btn-row">
-                <button class="btn btn-primary" id="saveModelBtn" onclick="saveModel()">保存模型配置</button>
-            </div>
-            <div class="msg" id="modelMsg"></div>
         </div>
-    </div>
 
-    <!-- System Prompt (collapsible) -->
-    <div class="section">
-        <h2>AI 人设（可选）</h2>
-        <p class="desc">给 AI 一个角色设定，它会按照你的要求回复</p>
         <div class="form-group">
-            <label>系统提示词 (System Prompt)</label>
-            <textarea id="systemPrompt" rows="3" placeholder="例：你是一个友好的中文助手，回复简洁明了。&#10;留空则使用默认设定。"></textarea>
-            <p class="hint">小技巧：写明语言偏好（如"用中文回复"）、风格（如"简洁"/"详细"）、角色（如"编程助手"）</p>
+            <label>API Key</label>
+            <div class="input-wrap">
+                <input type="password" id="apiKey" placeholder="sk-...">
+                <button class="toggle-pw" onclick="togglePw()">👁</button>
+            </div>
+            <p class="hint">你的 Key 仅保存在本地 U 盘，不会上传到任何服务器</p>
         </div>
-        <div class="form-group">
-            <label>AI 名称（可选）</label>
-            <input type="text" id="botName" placeholder="留空则使用默认名称">
-        </div>
+
         <div class="btn-row">
-            <button class="btn btn-secondary" onclick="savePrompt()">保存人设</button>
+            <button class="btn btn-secondary" onclick="goStep(1)">← 返回</button>
+            <button class="btn btn-primary" id="saveBtn" onclick="saveConfig()">保存并启动 🚀</button>
         </div>
-        <div class="msg" id="promptMsg"></div>
     </div>
-</div>
 
-<!-- ============ Panel 2: Chat Platforms ============ -->
-<div class="panel" id="panel-2">
-    <div class="section">
-        <h2>接入聊天平台</h2>
-        <p class="desc">让 AI 助手通过你常用的聊天软件和你对话（可选，也可以直接用网页控制台）</p>
+    <!-- Step 3: Done -->
+    <div class="section" id="step3">
+        <div class="result">
+            <div class="icon">🦞</div>
+            <h2>配置完成！</h2>
+            <p>模型和 API Key 已保存，准备好后点击下方按钮启动</p>
+            <div class="url" id="gatewayUrl">http://127.0.0.1:18789</div>
 
-        <!-- QQ -->
-        <div class="im-item" onclick="toggleIM('qq')" id="qq-item">
-            <div class="im-icon">💬</div>
-            <div class="im-info">
-                <div class="im-name">QQ 机器人</div>
-                <div class="im-desc">已预装插件，只需填 AppID 和 Secret</div>
-            </div>
-            <span class="im-badge installed">★ 推荐</span>
-        </div>
-        <div class="expandable" id="qq-config">
-            <div class="guide">
-                <b>获取 QQ 机器人凭证：</b>
-                <ol>
-                    <li>访问 <a href="https://q.qq.com" target="_blank" style="color:#ff6b35">q.qq.com</a> → 登录</li>
-                    <li>创建一个机器人应用</li>
-                    <li>在「开发设置」中找到 <b>AppID</b> 和 <b>AppSecret</b></li>
-                    <li>把它们填到下面就行</li>
-                </ol>
-            </div>
-            <div class="form-group">
-                <label>AppID</label>
-                <input type="text" id="qqAppId" placeholder="例: 102012345">
-            </div>
-            <div class="form-group">
-                <label>AppSecret</label>
-                <div class="input-wrap">
-                    <input type="password" id="qqAppSecret" placeholder="例: abcdef123456">
-                    <button class="toggle-pw" onclick="togglePassword('qqAppSecret')">显示</button>
+            <div style="margin-top: 24px; text-align: left;">
+                <h3 style="color: #ff6b35; font-size: 0.95em; margin-bottom: 12px;">📱 接入更多渠道（可选）</h3>
+                <p style="color: #888; font-size: 0.82em; margin-bottom: 12px;">点击展开卡片填写配置，启动时自动写入。不填也可以直接启动：</p>
+                <div class="model-grid">
+                    <div class="model-card channel-card" onclick="toggleChannel(this, 'telegram')">
+                        <h4>✈️ Telegram</h4>
+                        <p>接入 Telegram Bot</p>
+                        <div class="channel-form" id="form-telegram" onclick="event.stopPropagation()">
+                            <div class="form-group">
+                                <label>Bot Token</label>
+                                <input type="text" id="ch-telegram-token" placeholder="123456:ABC-DEF...">
+                                <p class="hint"><a href="https://t.me/BotFather" target="_blank">→ 从 @BotFather 获取</a></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="model-card channel-card" onclick="toggleChannel(this, 'qqbot')">
+                        <h4>🐧 QQ Bot</h4>
+                        <p>接入 QQ 群/私聊机器人</p>
+                        <div class="channel-form" id="form-qqbot" onclick="event.stopPropagation()">
+                            <div class="form-group">
+                                <label>App ID</label>
+                                <input type="text" id="ch-qqbot-appid" placeholder="应用 ID">
+                            </div>
+                            <div class="form-group">
+                                <label>Client Secret</label>
+                                <input type="text" id="ch-qqbot-secret" placeholder="应用密钥">
+                                <p class="hint"><a href="https://q.qq.com" target="_blank">→ 从 QQ 开放平台获取</a></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="model-card channel-card" onclick="toggleChannel(this, 'feishu')">
+                        <h4>📘 飞书</h4>
+                        <p>接入飞书机器人</p>
+                        <div class="channel-form" id="form-feishu" onclick="event.stopPropagation()">
+                            <div class="form-group">
+                                <label>App ID</label>
+                                <input type="text" id="ch-feishu-appid" placeholder="cli_xxx...">
+                            </div>
+                            <div class="form-group">
+                                <label>App Secret</label>
+                                <input type="text" id="ch-feishu-secret" placeholder="应用密钥">
+                                <p class="hint"><a href="https://open.feishu.cn/app" target="_blank">→ 从飞书开放平台获取</a></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="model-card channel-card" onclick="toggleChannel(this, 'wecom')">
+                        <h4>🏢 企业微信</h4>
+                        <p>接入企业微信机器人</p>
+                        <div class="channel-form" id="form-wecom" onclick="event.stopPropagation()">
+                            <div class="form-group">
+                                <label>Bot ID</label>
+                                <input type="text" id="ch-wecom-botid" placeholder="aib...">
+                            </div>
+                            <div class="form-group">
+                                <label>Secret</label>
+                                <input type="text" id="ch-wecom-secret" placeholder="密钥">
+                                <p class="hint"><a href="https://work.weixin.qq.com" target="_blank">→ 从企业微信管理后台获取</a></p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="form-group">
-                <label>你的 QQ 号（设为管理员白名单，留空则所有人可用）</label>
-                <input type="text" id="qqAllow" placeholder="例: 123456789">
-            </div>
-            <div class="btn-row">
-                <button class="btn btn-primary btn-sm" onclick="saveChannel('qq')">保存 QQ 配置</button>
-                <button class="btn btn-secondary btn-sm" onclick="removeChannel('qq')">移除</button>
-            </div>
-            <div class="msg" id="qqMsg"></div>
-        </div>
 
-        <!-- Feishu -->
-        <div class="im-item" onclick="toggleIM('feishu')" id="feishu-item">
-            <div class="im-icon">📎</div>
-            <div class="im-info">
-                <div class="im-name">飞书 Feishu</div>
-                <div class="im-desc">企业首选，内置支持</div>
+            <div style="margin-top: 28px; text-align: center;">
+                <button class="btn btn-primary" onclick="launchOpenClaw()" style="font-size: 1.15em; padding: 16px 48px;">🚀 启动 OpenClaw</button>
+                <p style="color: #888; font-size: 0.8em; margin-top: 10px;">启动后会自动打开控制台，渠道配置会自动写入 openclaw.json</p>
             </div>
-            <span class="im-badge builtin">内置</span>
+
+            <div class="btn-row" style="justify-content: center; margin-top: 16px;">
+                <button class="btn btn-secondary" onclick="goStep(1)">重新配置模型</button>
+            </div>
         </div>
-        <div class="expandable" id="feishu-config">
-            <div class="guide">
-                <b>获取飞书机器人凭证：</b>
-                <ol>
-                    <li>访问 <a href="https://open.feishu.cn/app" target="_blank" style="color:#ff6b35">open.feishu.cn</a> → 创建企业自建应用</li>
-                    <li>在「凭证与基础信息」中获取 <b>App ID</b> 和 <b>App Secret</b></li>
-                    <li>在「事件订阅」中配置回调地址</li>
-                </ol>
-            </div>
-            <div class="form-group">
-                <label>App ID</label>
-                <input type="text" id="feishuAppId" placeholder="cli_xxxxx">
-            </div>
-            <div class="form-group">
-                <label>App Secret</label>
-                <div class="input-wrap">
-                    <input type="password" id="feishuAppSecret">
-                    <button class="toggle-pw" onclick="togglePassword('feishuAppSecret')">显示</button>
+    </div>
+
+    <!-- Skills info -->
+    <div class="section active skills-section" style="display:block; margin-top: 24px;">
+        <h2>📦 技能 & 文档</h2>
+        <p class="desc">技能存放在 skills/ 目录，文档存放在 docs/ 目录，随 U 盘携带</p>
+        <div class="skill-list" id="skillList">
+            <div class="skill-item">
+                <div class="info">
+                    <h4>skills/ — 技能目录</h4>
+                    <p>放入 .md 技能文件，OpenClaw 会自动加载</p>
                 </div>
+                <span class="status">📁</span>
             </div>
-            <div class="btn-row">
-                <button class="btn btn-primary btn-sm" onclick="saveChannel('feishu')">保存飞书配置</button>
-                <button class="btn btn-secondary btn-sm" onclick="removeChannel('feishu')">移除</button>
-            </div>
-            <div class="msg" id="feishuMsg"></div>
-        </div>
-
-        <!-- Telegram -->
-        <div class="im-item" onclick="toggleIM('telegram')" id="telegram-item">
-            <div class="im-icon">✈️</div>
-            <div class="im-info">
-                <div class="im-name">Telegram</div>
-                <div class="im-desc">海外推荐，需翻墙</div>
-            </div>
-            <span class="im-badge builtin">内置</span>
-        </div>
-        <div class="expandable" id="telegram-config">
-            <div class="guide">
-                <b>获取 Telegram Bot Token：</b>
-                <ol>
-                    <li>在 Telegram 搜索 <b>@BotFather</b></li>
-                    <li>发送 /newbot 创建机器人</li>
-                    <li>按提示设置名称后，会给你一个 Token</li>
-                </ol>
-            </div>
-            <div class="form-group">
-                <label>Bot Token</label>
-                <div class="input-wrap">
-                    <input type="password" id="tgToken" placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11">
-                    <button class="toggle-pw" onclick="togglePassword('tgToken')">显示</button>
+            <div class="skill-item">
+                <div class="info">
+                    <h4>docs/ — 文档目录</h4>
+                    <p>存放使用说明、帮助文档等</p>
                 </div>
+                <span class="status">📁</span>
             </div>
-            <div class="form-group">
-                <label>允许的用户 ID（留空则所有人可用）</label>
-                <input type="text" id="tgAllow" placeholder="例: 123456789">
-            </div>
-            <div class="btn-row">
-                <button class="btn btn-primary btn-sm" onclick="saveChannel('telegram')">保存 Telegram 配置</button>
-                <button class="btn btn-secondary btn-sm" onclick="removeChannel('telegram')">移除</button>
-            </div>
-            <div class="msg" id="tgMsg"></div>
-        </div>
-
-        <!-- WeChat -->
-        <div class="im-item" onclick="toggleIM('wechat')" id="wechat-item">
-            <div class="im-icon">💚</div>
-            <div class="im-info">
-                <div class="im-name">微信 WeChat</div>
-                <div class="im-desc">社区插件，iPad 协议</div>
-            </div>
-            <span class="im-badge config">社区</span>
-        </div>
-        <div class="expandable" id="wechat-config">
-            <div class="guide">
-                <b>微信接入说明：</b>
-                <ol>
-                    <li>微信机器人使用 iPad 协议，需要单独的微信号</li>
-                    <li>在网页控制台中进入「插件市场」搜索微信插件</li>
-                    <li>安装后扫码登录即可</li>
-                </ol>
-                <p style="margin-top:8px; color:#ff9800;">⚠️ 微信接入需要在网页控制台中操作</p>
-            </div>
-            <div class="btn-row">
-                <button class="btn btn-secondary btn-sm" onclick="openDashboard()">打开网页控制台</button>
-            </div>
-        </div>
-
-        <!-- Discord -->
-        <div class="im-item" onclick="toggleIM('discord')" id="discord-item">
-            <div class="im-icon">🎮</div>
-            <div class="im-info">
-                <div class="im-name">Discord</div>
-                <div class="im-desc">游戏社区，内置支持</div>
-            </div>
-            <span class="im-badge builtin">内置</span>
-        </div>
-        <div class="expandable" id="discord-config">
-            <div class="guide">
-                <b>获取 Discord Bot Token：</b>
-                <ol>
-                    <li>访问 <a href="https://discord.com/developers/applications" target="_blank" style="color:#ff6b35">discord.com/developers</a></li>
-                    <li>创建 Application → 进入 Bot 页面 → 复制 Token</li>
-                    <li>在 OAuth2 中生成邀请链接，把 Bot 拉进你的服务器</li>
-                </ol>
-            </div>
-            <div class="form-group">
-                <label>Bot Token</label>
-                <div class="input-wrap">
-                    <input type="password" id="discordToken">
-                    <button class="toggle-pw" onclick="togglePassword('discordToken')">显示</button>
+            <div class="skill-item">
+                <div class="info">
+                    <h4>data/ — 配置和聊天记录</h4>
+                    <p>API Key、聊天历史等保存在此</p>
                 </div>
+                <span class="status">🔒</span>
             </div>
-            <div class="btn-row">
-                <button class="btn btn-primary btn-sm" onclick="saveChannel('discord')">保存 Discord 配置</button>
-                <button class="btn btn-secondary btn-sm" onclick="removeChannel('discord')">移除</button>
-            </div>
-            <div class="msg" id="discordMsg"></div>
-        </div>
-
-        <!-- WhatsApp -->
-        <div class="im-item" onclick="toggleIM('whatsapp')" id="whatsapp-item">
-            <div class="im-icon">📱</div>
-            <div class="im-info">
-                <div class="im-name">WhatsApp</div>
-                <div class="im-desc">Baileys 协议，扫码登录</div>
-            </div>
-            <span class="im-badge builtin">内置</span>
-        </div>
-        <div class="expandable" id="whatsapp-config">
-            <div class="guide">
-                <b>WhatsApp 接入：</b>
-                <p>WhatsApp 使用 Baileys 协议，需要在网页控制台扫码配对。</p>
-            </div>
-            <div class="btn-row">
-                <button class="btn btn-secondary btn-sm" onclick="openDashboard()">在控制台中配置</button>
-            </div>
-        </div>
-
-        <!-- Web -->
-        <div class="im-item" onclick="openDashboard()" style="border-style:dashed; opacity:0.8;">
-            <div class="im-icon">🌐</div>
-            <div class="im-info">
-                <div class="im-name">网页对话（始终可用）</div>
-                <div class="im-desc">打开控制台直接和 AI 对话，无需配置</div>
-            </div>
-            <span class="im-badge config">打开 →</span>
         </div>
     </div>
 </div>
 
-<!-- ============ Panel 3: System Settings ============ -->
-<div class="panel" id="panel-3">
-    <!-- Config overview -->
-    <div class="section">
-        <h2>配置概览</h2>
-        <p class="desc">当前系统状态一览</p>
-        <div class="overview">
-            <div class="ov-card">
-                <div class="ov-label">AI 模型</div>
-                <div class="ov-value" id="ovModel">未配置</div>
-            </div>
-            <div class="ov-card">
-                <div class="ov-label">API Key</div>
-                <div class="ov-value" id="ovKey">未配置</div>
-            </div>
-            <div class="ov-card">
-                <div class="ov-label">聊天平台</div>
-                <div class="ov-value" id="ovChannels">无</div>
-            </div>
-            <div class="ov-card">
-                <div class="ov-label">网关端口</div>
-                <div class="ov-value" id="ovPort">-</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick actions -->
-    <div class="section">
-        <h2>常用操作</h2>
-        <div class="btn-row" style="flex-wrap:wrap">
-            <button class="btn btn-secondary" onclick="openDashboard()">🌐 打开网页控制台</button>
-            <button class="btn btn-secondary" onclick="applyConfig()">🔄 应用配置（重载）</button>
-            <button class="btn btn-secondary" onclick="exportConfig()">📥 导出配置</button>
-            <button class="btn btn-secondary" onclick="importConfigPrompt()">📤 导入配置</button>
-        </div>
-        <div class="msg" id="actionMsg"></div>
-    </div>
-
-    <!-- Raw config -->
-    <div class="section">
-        <h2>原始配置</h2>
-        <p class="desc">查看和编辑 JSON 配置（高级用户）</p>
-        <div class="btn-row">
-            <button class="btn btn-secondary btn-sm" onclick="loadRawConfig()">查看配置</button>
-            <button class="btn btn-secondary btn-sm" onclick="editRawConfig()" id="editRawBtn" style="display:none">编辑</button>
-            <button class="btn btn-primary btn-sm" onclick="saveRawConfig()" id="saveRawBtn" style="display:none">保存修改</button>
-        </div>
-        <pre class="config-raw" id="rawConfig"></pre>
-        <textarea id="rawConfigEdit" style="display:none; width:100%; min-height:300px; margin-top:10px; background:#111; color:#4caf50; border:1px solid #333; border-radius:6px; padding:12px; font-family:monospace; font-size:0.82em;"></textarea>
-        <div class="msg" id="rawMsg"></div>
-    </div>
-
-    <!-- Diagnostics -->
-    <div class="section">
-        <h2>故障排除</h2>
-        <p class="desc">遇到问题？试试这些</p>
-        <div style="font-size:0.88em; color:#ccc; line-height:1.8;">
-            <p><b>Q: 保存后不生效？</b><br>点击上面的「应用配置（重载）」，或重启 OpenClaw 启动脚本。</p>
-            <p style="margin-top:8px;"><b>Q: 连接不上？</b><br>确保启动脚本（Mac-Start.command）正在运行，不要关闭终端窗口。</p>
-            <p style="margin-top:8px;"><b>Q: API Key 报错？</b><br>检查 Key 是否正确，余额是否充足。去对应平台的控制台查看。</p>
-            <p style="margin-top:8px;"><b>Q: QQ 机器人不回复？</b><br>1) 确认 AppID/Secret 正确 2) 重启 OpenClaw 3) 在 QQ 开放平台检查机器人状态</p>
-        </div>
-    </div>
-</div>
-
-<!-- Hidden: import file input -->
-<input type="file" id="importFile" accept=".json" style="display:none" onchange="importConfig(event)">
-
-</div>
+<div class="toast" id="toast"></div>
 
 <script>
-// ====== Model definitions ======
-const MODELS = {
-    deepseek: {
-        provider: 'custom', name: 'deepseek-chat',
-        baseUrl: 'https://api.deepseek.com/v1',
-        label: 'DeepSeek API Key',
-        hint: '获取地址: <a href="https://platform.deepseek.com/api_keys" target="_blank">platform.deepseek.com</a> → 创建 API Key',
-        showBaseUrl: true, showModelName: true
-    },
-    kimi: {
-        provider: 'custom', name: 'moonshot-v1-auto',
-        baseUrl: 'https://api.moonshot.cn/v1',
-        label: 'Moonshot API Key',
-        hint: '获取地址: <a href="https://platform.moonshot.cn/console/api-keys" target="_blank">platform.moonshot.cn</a>',
-        showBaseUrl: true, showModelName: true
-    },
-    qwen: {
-        provider: 'custom', name: 'qwen-plus',
-        baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-        label: '通义千问 API Key',
-        hint: '获取地址: <a href="https://dashscope.console.aliyun.com/apiKey" target="_blank">dashscope.aliyun.com</a>（有免费额度）',
-        showBaseUrl: true, showModelName: true
-    },
-    glm: {
-        provider: 'custom', name: 'glm-4-plus',
-        baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
-        label: '智谱 API Key',
-        hint: '获取地址: <a href="https://open.bigmodel.cn/usercenter/apikeys" target="_blank">open.bigmodel.cn</a>',
-        showBaseUrl: true, showModelName: true
-    },
-    minimax: {
-        provider: 'custom', name: 'abab6.5s-chat',
-        baseUrl: 'https://api.minimax.chat/v1',
-        label: 'MiniMax API Key',
-        hint: '获取地址: <a href="https://platform.minimaxi.com/" target="_blank">platform.minimaxi.com</a>',
-        showBaseUrl: true, showModelName: true
-    },
-    doubao: {
-        provider: 'custom', name: 'doubao-pro-256k',
-        baseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
-        label: '火山引擎 API Key',
-        hint: '获取地址: <a href="https://console.volcengine.com/ark" target="_blank">console.volcengine.com</a>',
-        showBaseUrl: true, showModelName: true
-    },
-    siliconflow: {
-        provider: 'custom', name: 'deepseek-ai/DeepSeek-V3',
-        baseUrl: 'https://api.siliconflow.cn/v1',
-        label: '硅基流动 API Key',
-        hint: '获取地址: <a href="https://cloud.siliconflow.cn/account/ak" target="_blank">cloud.siliconflow.cn</a>（聚合多种模型，一个 Key 可切换）',
-        showBaseUrl: true, showModelName: true
-    },
-    claude: {
-        provider: 'anthropic', name: 'claude-sonnet-4-20250514',
-        label: 'Anthropic API Key',
-        hint: '获取地址: <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a>（需翻墙）',
-        showBaseUrl: false, showModelName: true
-    },
-    gpt: {
-        provider: 'openai', name: 'gpt-4o',
-        label: 'OpenAI API Key',
-        hint: '获取地址: <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a>（需翻墙）',
-        showBaseUrl: false, showModelName: true
-    },
-    ollama: {
-        provider: 'custom', name: 'llama3.2',
-        baseUrl: 'http://127.0.0.1:11434/v1',
-        label: '无需 API Key（本地模型）',
-        hint: '先安装 <a href="https://ollama.com" target="_blank">Ollama</a>，然后运行 <code>ollama run llama3.2</code>',
-        showBaseUrl: true, showModelName: true, noKey: true
-    },
-    custom: {
-        provider: 'custom', name: '',
-        baseUrl: '',
-        label: 'API Key',
-        hint: '填写你的中转站/代理平台提供的 API Key。常见平台：OpenRouter、API2D、New API、One API 等',
-        showBaseUrl: true, showModelName: true, customMode: true
-    }
-};
+// --- State ---
+let selectedProvider = null;
+let selectedBase = '';
+let selectedModel = '';
 
-// ====== State ======
-let ws = null;
-let reqId = 0;
-let pendingReqs = {};
-let currentConfig = null;
-let configHash = null;
-let selectedModel = null;
-let connected = false;
-let gwPort = null;
-
-// ====== WebSocket ======
-function connect() {
-    const urlPort = new URLSearchParams(window.location.search).get('port');
-    if (urlPort) {
-        tryPort(parseInt(urlPort));
-    } else {
-        // Auto-detect port 18789-18799
-        tryPort(18789);
-    }
-}
-
-function tryPort(port) {
-    if (port > 18799) {
-        setStatus('off', 'OpenClaw 未运行 — 请先双击启动脚本（Mac-Start.command）');
-        showOfflineFallback();
-        return;
-    }
-    setStatus('connecting', `尝试连接端口 ${port}...`);
-
-    const testWs = new WebSocket(`ws://127.0.0.1:${port}/`);
-    const timeout = setTimeout(() => { testWs.close(); tryPort(port + 1); }, 2000);
-
-    testWs.onopen = () => {
-        clearTimeout(timeout);
-        // Wait for connect.challenge from gateway, then send connect handshake
-        let connectSent = false;
-        const sendConnect = () => {
-            if (connectSent) return;
-            connectSent = true;
-            const connectId = String(++reqId);
-            pendingReqs[connectId] = (msg) => {
-                delete pendingReqs[connectId];
-                if (msg.ok !== false) {
-                    ws = testWs;
-                    gwPort = port;
-                    connected = true;
-                    setStatus('on', `OpenClaw 已连接（端口 ${port}）`);
-                    setupWs();
-                    loadConfig().then(prefillFromConfig);
-                } else {
-                    testWs.close();
-                    tryPort(port + 1);
-                }
-            };
-            testWs.send(JSON.stringify({
-                type: 'req', id: connectId, method: 'connect',
-                params: {
-                    minProtocol: 3, maxProtocol: 3,
-                    client: { id: 'webchat', version: '2.0.0', platform: 'web', mode: 'webchat' },
-                    role: 'operator',
-                    scopes: ['operator.admin', 'operator.approvals', 'operator.pairing'],
-                    auth: { token: 'uclaw' }
-                }
-            }));
-        };
-        // Listen for challenge or timeout
-        testWs.onmessage = (e) => {
-            try {
-                const msg = JSON.parse(e.data);
-                if (msg.type === 'event' && msg.event === 'connect.challenge') {
-                    sendConnect();
-                } else if (msg.type === 'res' && pendingReqs[msg.id]) {
-                    pendingReqs[msg.id](msg);
-                }
-            } catch(err) {}
-        };
-        // Fallback: if no challenge in 750ms, send anyway
-        setTimeout(sendConnect, 750);
-    };
-    testWs.onerror = () => { clearTimeout(timeout); tryPort(port + 1); };
-    testWs.onclose = () => {
-        if (ws === testWs) {
-            connected = false;
-            setStatus('connecting', '连接断开，5秒后重连...');
-            setTimeout(() => tryPort(gwPort || 18789), 5000);
-        }
-    };
-}
-
-function setupWs() {
-    ws.onmessage = (e) => {
-        try {
-            const msg = JSON.parse(e.data);
-            if (msg.type === 'res' && pendingReqs[msg.id]) {
-                pendingReqs[msg.id](msg);
-                delete pendingReqs[msg.id];
-            }
-        } catch(err) {}
-    };
-    ws.onclose = () => {
-        connected = false;
-        setStatus('connecting', '连接断开，5秒后重连...');
-        setTimeout(() => tryPort(gwPort || 18789), 5000);
-    };
-}
-
-function rpc(method, params) {
-    return new Promise((resolve, reject) => {
-        if (!ws || ws.readyState !== 1) { reject('未连接'); return; }
-        const id = String(++reqId);
-        pendingReqs[id] = (msg) => msg.ok ? resolve(msg.payload) : reject(msg.payload || msg.error);
-        ws.send(JSON.stringify({ type: 'req', id, method, params: params || {} }));
-        setTimeout(() => { if (pendingReqs[id]) { delete pendingReqs[id]; reject('请求超时'); } }, 15000);
+// --- Model cards ---
+document.querySelectorAll('.model-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+        if (e.target.closest('.buy-link')) return; // don't select when clicking buy link
+        document.querySelectorAll('.model-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedProvider = card.dataset.provider;
+        selectedBase = card.dataset.base;
+        selectedModel = card.dataset.model;
+        document.getElementById('nextStep1').disabled = false;
     });
+});
+
+document.getElementById('nextStep1').addEventListener('click', () => goStep(2));
+
+// --- Steps ---
+function goStep(n) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById('step' + n).classList.add('active');
+    // Keep skills section visible
+    document.querySelectorAll('.steps .step').forEach((s, i) => {
+        s.classList.remove('active', 'done');
+        if (i + 1 < n) s.classList.add('done');
+        if (i + 1 === n) s.classList.add('active');
+    });
+
+    if (n === 2) setupStep2();
 }
 
+function setupStep2() {
+    const isCustom = selectedProvider === 'custom';
+    document.getElementById('customFields').style.display = isCustom ? 'block' : 'none';
+
+    const providerNames = {
+        minimax: 'MiniMax', kimi: 'Kimi (月之暗面)', deepseek: 'DeepSeek',
+        zhipu: '智谱 GLM', qwen: '通义千问', doubao: '豆包',
+        openai: 'OpenAI', anthropic: 'Anthropic Claude', groq: 'Groq',
+        siliconflow: '硅基流动', custom: '自定义'
+    };
+    const name = providerNames[selectedProvider] || selectedProvider;
+    document.getElementById('step2desc').textContent = `请填写 ${name} 的 API Key`;
+
+    // Buy links
+    const card = document.querySelector(`.model-card[data-provider="${selectedProvider}"]`);
+    const buyLink = card ? card.querySelector('.buy-link') : null;
+    const linksDiv = document.getElementById('providerLinks');
+    linksDiv.innerHTML = '';
+    if (buyLink) {
+        linksDiv.innerHTML = `
+            <a href="${buyLink.href}" target="_blank">🔑 ${name} — 获取 API Key</a>
+        `;
+    }
+    // Add common alternatives
+    linksDiv.innerHTML += `
+        <a href="https://platform.minimaxi.com/" target="_blank">🔑 MiniMax — 国内推荐，注册送额度</a>
+        <a href="https://open.bigmodel.cn/" target="_blank">🔑 智谱 GLM — 有免费额度</a>
+        <a href="https://cloud.siliconflow.cn/" target="_blank">🔑 硅基流动 — 多模型聚合，便宜</a>
+    `;
+}
+
+// --- Toggle password ---
+function togglePw() {
+    const inp = document.getElementById('apiKey');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+// --- Generate correct OpenClaw config ---
+function buildOpenClawConfig(provider, base, model, apiKey) {
+    // Base config that OpenClaw expects
+    const baseConfig = {
+        gateway: { auth: { mode: 'token', token: 'uclaw' } },
+        commands: { native: 'auto', nativeSkills: 'auto', restart: true, ownerDisplay: 'raw' },
+        meta: { lastTouchedVersion: '2026.3.13', lastTouchedAt: new Date().toISOString() }
+    };
+
+    // 智谱 GLM uses the built-in zai provider
+    if (provider === 'zai') {
+        return {
+            ...baseConfig,
+            env: { ZAI_API_KEY: apiKey },
+            agents: { defaults: { model: { primary: 'zai/' + model } } }
+        };
+    }
+
+    // All other providers use models.providers (OpenAI-compatible)
+    const providerName = provider || 'myProvider';
+    return {
+        ...baseConfig,
+        models: {
+            mode: 'merge',
+            providers: {
+                [providerName]: {
+                    baseUrl: base,
+                    apiKey: apiKey,
+                    api: 'openai-completions',
+                    models: [{
+                        id: model,
+                        name: model,
+                        reasoning: false,
+                        input: ['text'],
+                        cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+                        contextWindow: 128000,
+                        maxTokens: 8192
+                    }]
+                }
+            }
+        },
+        agents: { defaults: { model: { primary: providerName + '/' + model } } }
+    };
+}
+
+// --- Save config ---
+async function saveConfig() {
+    const apiKey = document.getElementById('apiKey').value.trim();
+    if (!apiKey) { showToast('请填写 API Key', true); return; }
+
+    let base = selectedBase;
+    let model = selectedModel;
+
+    if (selectedProvider === 'custom') {
+        base = document.getElementById('customBase').value.trim();
+        model = document.getElementById('customModel').value.trim();
+        if (!base || !model) { showToast('请填写 API 地址和模型名称', true); return; }
+    }
+
+    const openclawConfig = buildOpenClawConfig(selectedProvider, base, model, apiKey);
+
+    try {
+        const res = await fetch('/api/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(openclawConfig)
+        });
+        if (!res.ok) throw new Error('保存失败');
+
+        showToast('配置已保存！');
+        goStep(3);
+        const port = getPort();
+        document.getElementById('gatewayUrl').textContent = 'http://127.0.0.1:' + port;
+    } catch (e) {
+        showToast('保存失败: ' + e.message, true);
+    }
+}
+
+// --- Toast ---
+function showToast(msg, isError) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (isError ? ' error' : '');
+    setTimeout(() => t.className = 'toast', 3000);
+}
+
+// --- Load existing config ---
 async function loadConfig() {
     try {
-        const res = await rpc('config.get');
-        if (res.raw) {
-            try { currentConfig = JSON.parse(res.raw); } catch(e) { currentConfig = res; }
-        } else {
-            currentConfig = res;
+        const res = await fetch('/api/config');
+        const cfg = await res.json();
+
+        // Detect zai provider (智谱 GLM)
+        if (cfg.env && cfg.env.ZAI_API_KEY) {
+            const card = document.querySelector('.model-card[data-provider="zai"]');
+            if (card) card.click();
+            document.getElementById('apiKey').value = cfg.env.ZAI_API_KEY;
+            return;
         }
-        configHash = res.hash;
-        return currentConfig;
-    } catch(e) {
-        console.log('config.get failed:', e);
-        currentConfig = currentConfig || {};
-        return currentConfig;
-    }
-}
 
-async function saveConfig(config) {
-    // Reload to get latest hash
-    await loadConfig();
-    // Merge changes
-    const merged = deepMerge(currentConfig || {}, config);
-    const raw = JSON.stringify(merged, null, 2);
-    await rpc('config.set', { raw, baseHash: configHash });
-    await loadConfig();
-    updateOverview();
-}
-
-function deepMerge(target, source) {
-    const result = { ...target };
-    for (const key of Object.keys(source)) {
-        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-            result[key] = deepMerge(result[key] || {}, source[key]);
-        } else {
-            result[key] = source[key];
-        }
-    }
-    return result;
-}
-
-// ====== Status bar ======
-function setStatus(state, text) {
-    document.getElementById('statusDot').className = 'dot ' + state;
-    document.getElementById('statusText').innerHTML = text;
-}
-
-function showOfflineFallback() {
-    // Show info message when gateway isn't running
-}
-
-// ====== Step navigation ======
-function goStep(n) {
-    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('step' + n).classList.add('active');
-    document.getElementById('panel-' + n).classList.add('active');
-}
-
-// ====== Model selection ======
-function selectModel(key) {
-    selectedModel = key;
-    document.querySelectorAll('.model-card').forEach(c => c.classList.remove('selected'));
-    document.querySelector(`[data-model="${key}"]`).classList.add('selected');
-
-    const m = MODELS[key];
-    document.getElementById('modelConfigForm').style.display = 'block';
-    document.getElementById('apiKeyLabel').textContent = m.label;
-    document.getElementById('apiKeyHint').innerHTML = m.hint;
-    document.getElementById('baseUrlGroup').style.display = m.showBaseUrl ? 'block' : 'none';
-    document.getElementById('modelNameGroup').style.display = m.showModelName ? 'block' : 'none';
-    if (m.baseUrl) document.getElementById('baseUrl').value = m.baseUrl;
-    if (m.name) document.getElementById('modelName').value = m.name;
-    document.getElementById('saveModelBtn').disabled = false;
-
-    // Ollama: hide API key
-    if (m.noKey) {
-        document.getElementById('apiKeyGroup').style.display = 'none';
-        document.getElementById('apiKey').value = 'ollama';
-    } else {
-        document.getElementById('apiKeyGroup').style.display = 'block';
-    }
-
-    // Custom mode: clear fields, show all, update hints
-    if (m.customMode) {
-        document.getElementById('baseUrl').value = '';
-        document.getElementById('baseUrl').placeholder = '例: https://openrouter.ai/api/v1';
-        document.getElementById('modelName').value = '';
-        document.getElementById('modelName').placeholder = '例: gpt-4o 或 deepseek-chat';
-        document.getElementById('modelNameHint').innerHTML = '填写中转站支持的模型名称，具体看平台文档';
-    } else {
-        document.getElementById('baseUrl').placeholder = 'https://api.deepseek.com/v1';
-        document.getElementById('modelNameHint').innerHTML = '默认已填好，高级用户可修改';
-    }
-}
-
-// ====== Save model ======
-async function saveModel() {
-    if (!selectedModel) return;
-    const m = MODELS[selectedModel];
-    const apiKey = document.getElementById('apiKey').value.trim();
-    if (!apiKey && !m.noKey) { showMsg('modelMsg', '请填写 API Key', 'err'); return; }
-
-    const modelName = document.getElementById('modelName').value.trim() || m.name;
-    const patch = {};
-
-    if (m.provider === 'custom') {
-        const baseUrl = document.getElementById('baseUrl').value.trim() || m.baseUrl;
-        patch.agent = {
-            model: `custom/${modelName}`,
-            providers: { custom: { baseUrl, apiKey: apiKey || 'ollama' } }
-        };
-    } else if (m.provider === 'anthropic') {
-        patch.agent = {
-            model: `anthropic/${modelName}`,
-            providers: { anthropic: { apiKey } }
-        };
-    } else if (m.provider === 'openai') {
-        patch.agent = {
-            model: `openai/${modelName}`,
-            providers: { openai: { apiKey } }
-        };
-    }
-
-    try {
-        document.getElementById('saveModelBtn').disabled = true;
-        document.getElementById('saveModelBtn').textContent = '保存中...';
-        await saveConfig(patch);
-        showMsg('modelMsg', '模型配置已保存！你可以去「聊天平台」接入 QQ / 飞书等，或直接打开网页控制台和 AI 对话。', 'ok');
-        document.getElementById('step1').classList.add('done');
-        document.getElementById('welcomeBanner').style.display = 'none';
-    } catch(e) {
-        showMsg('modelMsg', '保存失败: ' + (typeof e === 'string' ? e : JSON.stringify(e)), 'err');
-    } finally {
-        document.getElementById('saveModelBtn').disabled = false;
-        document.getElementById('saveModelBtn').textContent = '保存模型配置';
-    }
-}
-
-// ====== Save system prompt ======
-async function savePrompt() {
-    const prompt = document.getElementById('systemPrompt').value.trim();
-    const name = document.getElementById('botName').value.trim();
-    const patch = { agent: {} };
-    if (prompt) patch.agent.systemPrompt = prompt;
-    if (name) patch.agent.name = name;
-
-    try {
-        await saveConfig(patch);
-        showMsg('promptMsg', '人设已保存！', 'ok');
-    } catch(e) {
-        showMsg('promptMsg', '保存失败: ' + e, 'err');
-    }
-}
-
-// ====== Toggle password ======
-function togglePassword(id) {
-    const input = document.getElementById(id);
-    const btn = input.parentElement.querySelector('.toggle-pw');
-    if (input.type === 'password') {
-        input.type = 'text';
-        btn.textContent = '隐藏';
-    } else {
-        input.type = 'password';
-        btn.textContent = '显示';
-    }
-}
-
-// ====== IM platform config ======
-function toggleIM(name) {
-    const el = document.getElementById(name + '-config');
-    // Close others
-    document.querySelectorAll('.expandable').forEach(e => { if (e !== el) e.classList.remove('open'); });
-    el.classList.toggle('open');
-}
-
-async function saveChannel(type) {
-    const patch = { channels: {} };
-    let msgId;
-
-    if (type === 'qq') {
-        msgId = 'qqMsg';
-        const id = document.getElementById('qqAppId').value.trim();
-        const secret = document.getElementById('qqAppSecret').value.trim();
-        if (!id || !secret) { showMsg(msgId, '请填写 AppID 和 AppSecret', 'err'); return; }
-        patch.channels.qqbot = { token: `${id}:${secret}` };
-        const allow = document.getElementById('qqAllow').value.trim();
-        if (allow) patch.channels.qqbot.allowFrom = allow;
-    } else if (type === 'feishu') {
-        msgId = 'feishuMsg';
-        const id = document.getElementById('feishuAppId').value.trim();
-        const secret = document.getElementById('feishuAppSecret').value.trim();
-        if (!id || !secret) { showMsg(msgId, '请填写 App ID 和 App Secret', 'err'); return; }
-        patch.channels.feishu = { appId: id, appSecret: secret };
-    } else if (type === 'telegram') {
-        msgId = 'tgMsg';
-        const token = document.getElementById('tgToken').value.trim();
-        if (!token) { showMsg(msgId, '请填写 Bot Token', 'err'); return; }
-        patch.channels.telegram = { token };
-        const allow = document.getElementById('tgAllow').value.trim();
-        if (allow) patch.channels.telegram.allowFrom = allow;
-    } else if (type === 'discord') {
-        msgId = 'discordMsg';
-        const token = document.getElementById('discordToken').value.trim();
-        if (!token) { showMsg(msgId, '请填写 Bot Token', 'err'); return; }
-        patch.channels.discord = { token };
-    }
-
-    try {
-        await saveConfig(patch);
-        showMsg(msgId, '配置已保存！重启 OpenClaw 后生效。', 'ok');
-        document.getElementById(type + '-item').classList.add('configured');
-        document.getElementById('step2').classList.add('done');
-    } catch(e) {
-        showMsg(msgId, '保存失败: ' + e, 'err');
-    }
-}
-
-async function removeChannel(type) {
-    try {
-        await loadConfig();
-        if (currentConfig && currentConfig.channels) {
-            const chKey = type === 'qq' ? 'qqbot' : type;
-            delete currentConfig.channels[chKey];
-            await rpc('config.set', { raw: JSON.stringify(currentConfig, null, 2), baseHash: configHash });
-            await loadConfig();
-            showMsg((type === 'qq' ? 'qq' : type === 'telegram' ? 'tg' : type) + 'Msg', '已移除', 'warn');
-            document.getElementById(type + '-item').classList.remove('configured');
-            updateOverview();
-        }
-    } catch(e) {
-        console.error('Remove failed:', e);
-    }
-}
-
-// ====== Prefill from existing config ======
-function prefillFromConfig() {
-    if (!currentConfig) return;
-
-    const isFirstTime = !currentConfig.agent || !currentConfig.agent.model;
-    document.getElementById('welcomeBanner').style.display = isFirstTime ? 'block' : 'none';
-
-    // Model
-    if (currentConfig.agent && currentConfig.agent.model) {
-        const modelStr = currentConfig.agent.model;
-        // Try to identify which model card to select
-        for (const [key, m] of Object.entries(MODELS)) {
-            const fullModel = m.provider === 'custom' ? `custom/${m.name}` : `${m.provider}/${m.name}`;
-            if (modelStr === fullModel || modelStr.includes(m.name)) {
-                selectModel(key);
-                // Fill API key
-                const providers = currentConfig.agent.providers || {};
-                const prov = providers[m.provider] || providers.custom || {};
-                if (prov.apiKey && prov.apiKey !== 'ollama') {
-                    document.getElementById('apiKey').value = prov.apiKey;
-                }
-                if (prov.baseUrl) {
-                    document.getElementById('baseUrl').value = prov.baseUrl;
-                }
-                break;
+        // Detect models.providers format
+        if (cfg.models && cfg.models.providers) {
+            const providerName = Object.keys(cfg.models.providers)[0];
+            if (providerName) {
+                const p = cfg.models.providers[providerName];
+                document.querySelectorAll('.model-card').forEach(card => {
+                    if (card.dataset.provider === providerName) card.click();
+                });
+                if (p.apiKey) document.getElementById('apiKey').value = p.apiKey;
             }
         }
-        document.getElementById('step1').classList.add('done');
-    }
+    } catch(e) {}
+}
+loadConfig();
 
-    // System prompt
-    if (currentConfig.agent) {
-        if (currentConfig.agent.systemPrompt) {
-            document.getElementById('systemPrompt').value = currentConfig.agent.systemPrompt;
-        }
-        if (currentConfig.agent.name) {
-            document.getElementById('botName').value = currentConfig.agent.name;
-        }
-    }
+// Allow direct step preview via URL param, e.g. ?step=3
+const stepParam = new URLSearchParams(window.location.search).get('step');
+if (stepParam) goStep(parseInt(stepParam));
 
-    // Channels
-    if (currentConfig.channels) {
-        const ch = currentConfig.channels;
-        if (ch.qqbot) {
-            document.getElementById('qq-item').classList.add('configured');
-            const parts = (ch.qqbot.token || '').split(':');
-            if (parts.length >= 2) {
-                document.getElementById('qqAppId').value = parts[0];
-                document.getElementById('qqAppSecret').value = parts.slice(1).join(':');
-            }
-            if (ch.qqbot.allowFrom) document.getElementById('qqAllow').value = ch.qqbot.allowFrom;
-        }
-        if (ch.feishu) {
-            document.getElementById('feishu-item').classList.add('configured');
-            if (ch.feishu.appId) document.getElementById('feishuAppId').value = ch.feishu.appId;
-            if (ch.feishu.appSecret) document.getElementById('feishuAppSecret').value = ch.feishu.appSecret;
-        }
-        if (ch.telegram) {
-            document.getElementById('telegram-item').classList.add('configured');
-            if (ch.telegram.token) document.getElementById('tgToken').value = ch.telegram.token;
-            if (ch.telegram.allowFrom) document.getElementById('tgAllow').value = ch.telegram.allowFrom;
-        }
-        if (ch.discord) {
-            document.getElementById('discord-item').classList.add('configured');
-            if (ch.discord.token) document.getElementById('discordToken').value = ch.discord.token;
-        }
-
-        if (Object.keys(ch).length > 0) {
-            document.getElementById('step2').classList.add('done');
-        }
-    }
-
-    updateOverview();
+// --- Step 3: Quick entry buttons ---
+function getPort() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('port') || '18789';
 }
 
-// ====== Overview update ======
-function updateOverview() {
-    if (!currentConfig) return;
-
-    // Model
-    const modelEl = document.getElementById('ovModel');
-    if (currentConfig.agent && currentConfig.agent.model) {
-        modelEl.textContent = currentConfig.agent.model;
-        modelEl.className = 'ov-value ok';
-    } else {
-        modelEl.textContent = '未配置';
-        modelEl.className = 'ov-value none';
-    }
-
-    // API Key
-    const keyEl = document.getElementById('ovKey');
-    const providers = currentConfig.agent?.providers || {};
-    const anyKey = Object.values(providers).some(p => p.apiKey);
-    keyEl.textContent = anyKey ? '已配置' : '未配置';
-    keyEl.className = anyKey ? 'ov-value ok' : 'ov-value none';
-
-    // Channels
-    const chEl = document.getElementById('ovChannels');
-    const channels = Object.keys(currentConfig.channels || {});
-    chEl.textContent = channels.length > 0 ? channels.join(', ') : '无';
-    chEl.className = channels.length > 0 ? 'ov-value ok' : 'ov-value none';
-
-    // Port
-    document.getElementById('ovPort').textContent = gwPort || '-';
-}
-
-// ====== Dashboard ======
 function openDashboard() {
-    const port = gwPort || 18789;
-    window.open(`http://127.0.0.1:${port}/#token=uclaw`);
+    const port = getPort();
+    window.open('http://127.0.0.1:' + port + '/#token=uclaw', '_blank');
 }
 
-// ====== Apply config ======
-async function applyConfig() {
-    try {
-        await rpc('config.apply');
-        showMsg('actionMsg', '配置已重新加载！', 'ok');
-    } catch(e) {
-        showMsg('actionMsg', '重载失败，请手动重启启动脚本: ' + e, 'warn');
+function openOnboard() {
+    const port = getPort();
+    window.open('http://127.0.0.1:' + port + '/onboarding', '_blank');
+}
+
+function openChannel(type) {
+    const port = getPort();
+    window.open('http://127.0.0.1:' + port + '/#/channels', '_blank');
+}
+
+function toggleChannel(card, type) {
+    const form = document.getElementById('form-' + type);
+    const isOpen = form.classList.contains('open');
+    if (isOpen) {
+        form.classList.remove('open');
+        card.classList.remove('selected');
+    } else {
+        form.classList.add('open');
+        card.classList.add('selected');
+        // Focus first input
+        const firstInput = form.querySelector('input');
+        if (firstInput) setTimeout(() => firstInput.focus(), 100);
     }
 }
 
-// ====== Export config ======
-function exportConfig() {
-    if (!currentConfig) { showMsg('actionMsg', '暂无配置可导出', 'warn'); return; }
-    const blob = new Blob([JSON.stringify(currentConfig, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'uclaw-config-' + new Date().toISOString().slice(0,10) + '.json';
-    a.click();
-    showMsg('actionMsg', '配置已导出', 'ok');
-}
+async function launchOpenClaw() {
+    // 1. Collect channel configs
+    const channels = {};
 
-// ====== Import config ======
-function importConfigPrompt() {
-    document.getElementById('importFile').click();
-}
+    const tgToken = document.getElementById('ch-telegram-token')?.value.trim();
+    if (tgToken) channels.telegram = { enabled: true, botToken: tgToken, dmPolicy: 'pairing' };
 
-async function importConfig(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    try {
-        const text = await file.text();
-        const config = JSON.parse(text);
-        await rpc('config.set', { raw: JSON.stringify(config, null, 2), baseHash: configHash });
-        await loadConfig();
-        prefillFromConfig();
-        showMsg('actionMsg', '配置已导入并保存！', 'ok');
-    } catch(e) {
-        showMsg('actionMsg', '导入失败: ' + e, 'err');
+    const qqId = document.getElementById('ch-qqbot-appid')?.value.trim();
+    const qqSecret = document.getElementById('ch-qqbot-secret')?.value.trim();
+    if (qqId && qqSecret) channels.qqbot = { enabled: true, appId: qqId, clientSecret: qqSecret };
+
+    const fsId = document.getElementById('ch-feishu-appid')?.value.trim();
+    const fsSecret = document.getElementById('ch-feishu-secret')?.value.trim();
+    if (fsId && fsSecret) channels.feishu = { enabled: true, appId: fsId, appSecret: fsSecret };
+
+    const wcBotId = document.getElementById('ch-wecom-botid')?.value.trim();
+    const wcSecret = document.getElementById('ch-wecom-secret')?.value.trim();
+    if (wcBotId && wcSecret) channels.wecom = { enabled: true, botId: wcBotId, secret: wcSecret };
+
+    // 2. Save channel config if any (merge into existing config)
+    if (Object.keys(channels).length > 0) {
+        try {
+            const res = await fetch('/api/config');
+            const existing = res.ok ? await res.json() : {};
+            existing.channels = Object.assign(existing.channels || {}, channels);
+            await fetch('/api/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(existing)
+            });
+        } catch(e) {}
     }
-    event.target.value = '';
-}
 
-// ====== Raw config ======
-async function loadRawConfig() {
-    try {
-        await loadConfig();
-        const el = document.getElementById('rawConfig');
-        el.style.display = 'block';
-        el.textContent = JSON.stringify(currentConfig, null, 2);
-        document.getElementById('editRawBtn').style.display = 'inline-block';
-        document.getElementById('rawConfigEdit').style.display = 'none';
-        document.getElementById('saveRawBtn').style.display = 'none';
-    } catch(e) {
-        const el = document.getElementById('rawConfig');
-        el.style.display = 'block';
-        el.textContent = '无法加载配置: ' + e;
-    }
+    // 3. Launch
+    showToast('正在启动 OpenClaw...');
+    try { await fetch('/api/done', { method: 'POST' }); } catch(e) {}
 }
-
-function editRawConfig() {
-    const raw = document.getElementById('rawConfig').textContent;
-    document.getElementById('rawConfigEdit').value = raw;
-    document.getElementById('rawConfigEdit').style.display = 'block';
-    document.getElementById('rawConfig').style.display = 'none';
-    document.getElementById('editRawBtn').style.display = 'none';
-    document.getElementById('saveRawBtn').style.display = 'inline-block';
-}
-
-async function saveRawConfig() {
-    try {
-        const raw = document.getElementById('rawConfigEdit').value;
-        JSON.parse(raw); // validate
-        await rpc('config.set', { raw, baseHash: configHash });
-        await loadConfig();
-        prefillFromConfig();
-        showMsg('rawMsg', '配置已保存', 'ok');
-        document.getElementById('rawConfigEdit').style.display = 'none';
-        document.getElementById('saveRawBtn').style.display = 'none';
-        loadRawConfig();
-    } catch(e) {
-        showMsg('rawMsg', 'JSON 格式错误或保存失败: ' + e, 'err');
-    }
-}
-
-// ====== Utility ======
-function showMsg(id, text, type) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.innerHTML = text;
-    el.className = 'msg ' + type;
-    if (type === 'ok' || type === 'warn') {
-        setTimeout(() => { el.className = 'msg'; }, 8000);
-    }
-}
-
-// ====== Init ======
-connect();
 </script>
 </body>
 </html>

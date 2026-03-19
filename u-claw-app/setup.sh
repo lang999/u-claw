@@ -14,7 +14,7 @@ NC='\033[0m'
 BOLD='\033[1m'
 
 APP_DIR="$(cd "$(dirname "$0")" && pwd)"
-NODE_VER="v22.14.0"
+NODE_VER="v22.16.0"
 MIRROR="https://registry.npmmirror.com"
 NODE_MIRROR="https://npmmirror.com/mirrors/node"
 
