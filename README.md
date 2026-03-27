@@ -121,6 +121,18 @@ npm run build:win        # 打包 → release/*.exe
 | MiniMax | 语音多模态 |
 | 豆包 Doubao | 火山引擎 |
 
+SophNet，提供DS，GLM，Qwen，MiniMax，Kimi等多家开源大模型，多达50多种，可以做多模型之间的切换。 
+比如：
+"DeepSeek-V3.2-Fast"
+"DeepSeek-V3.2"
+"MiniMax-M2.7"
+"GLM-5"
+"Kimi-K2.5"
+"Qwen3.5-397B-A17B"
+"Qwen3-VL-235B-A22B-Instruct"
+可以通过https://www.sophnet.com/#?code=4T6VKY注册了解。
+
+
 **国际模型：** Claude · GPT · Gemini（需翻墙或中转）
 
 ### 支持的聊天平台
